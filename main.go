@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -52,6 +53,12 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 func (a *UsersBlocker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	userId := req.Header["X-Auth-User-Id"][0]
+
+	os.Stdout.WriteString("request Path ->")
+	os.Stdout.WriteString(req.URL.Path)
+
+	os.Stdout.WriteString("userId ->")
+	os.Stdout.WriteString(userId)
 
 	var isUserBlocked bool
 
