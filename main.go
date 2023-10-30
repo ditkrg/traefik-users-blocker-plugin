@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"slices"
 	"strings"
 )
 
@@ -54,7 +53,14 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 func (a *UsersBlocker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	userId := req.Header["X-Auth-User-Id"][0]
-	isUserBlocked := slices.Contains(a.userId, userId)
+
+	var isUserBlocked bool
+
+	for _, id := range a.userId {
+		if id == userId {
+			isUserBlocked = true
+		}
+	}
 
 	if !isUserBlocked {
 		a.next.ServeHTTP(rw, req)
