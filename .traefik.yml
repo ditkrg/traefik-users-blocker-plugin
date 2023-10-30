@@ -11,6 +11,6 @@ testData:
     - userId1
     - userId2
   paths:
-    - prefix: /v1/users
-      mustContain: testValue
-    - prefix: /v1/organizations
+    - base: /v1/users
+      path: /testValue
+    - base: /v1/organizations

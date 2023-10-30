@@ -9,8 +9,8 @@ import (
 )
 
 type Path struct {
-	Prefix      string `json:"prefix,omitempty"`
-	MustContain string `json:"mustContain,omitempty"`
+	Base string `json:"base,omitempty"`
+	Path string `json:"path,omitempty"`
 }
 
 type Config struct {
@@ -38,8 +38,8 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	}
 
 	for _, path := range config.Paths {
-		if path.Prefix == "" {
-			return nil, fmt.Errorf("Paths.Prefix cannot be empty")
+		if path.Base == "" {
+			return nil, fmt.Errorf("Paths.Base cannot be empty")
 		}
 	}
 
@@ -54,11 +54,8 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 func (a *UsersBlocker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	userId := req.Header["X-Auth-User-Id"][0]
 
-	os.Stdout.WriteString("\n request Path ->")
-	os.Stdout.WriteString(req.URL.Path + "\n")
-
-	os.Stdout.WriteString("\n userId ->")
-	os.Stdout.WriteString(userId + "\n")
+	message := fmt.Sprintf("{requestPath: %s, userId: %s}\n", req.URL.Path, userId)
+	os.Stdout.WriteString(message)
 
 	var isUserBlocked bool
 
@@ -74,14 +71,13 @@ func (a *UsersBlocker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	for _, path := range a.paths {
-		isPathBlocked := strings.HasPrefix(req.URL.Path, path.Prefix)
-
-		if isPathBlocked && path.MustContain != "" {
-			isPathBlocked = !strings.Contains(req.URL.Path, path.MustContain)
-		}
+		blockedPath := path.Base + path.Path
+		isPathBlocked := strings.HasPrefix(req.URL.Path, blockedPath)
 
 		if isPathBlocked {
-			http.Error(rw, "Forbidden", http.StatusForbidden)
+			message := fmt.Sprintf("blocked path %s (matched with %s) for user %s", req.URL.Path, blockedPath, userId)
+			os.Stdout.WriteString(message)
+			http.Error(rw, message, http.StatusForbidden)
 			return
 		}
 	}
