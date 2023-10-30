@@ -10,7 +10,6 @@ import (
 
 type Path struct {
 	Base string `json:"base,omitempty"`
-	Path string `json:"path,omitempty"`
 }
 
 type Config struct {
@@ -71,11 +70,10 @@ func (a *UsersBlocker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	for _, path := range a.paths {
-		blockedPath := path.Base + path.Path
-		isPathBlocked := strings.HasPrefix(req.URL.Path, blockedPath)
+		isPathMatched := strings.HasPrefix(req.URL.Path, path.Base)
 
-		if isPathBlocked {
-			message := fmt.Sprintf("blocked path %s (matched with %s) for user %s", req.URL.Path, blockedPath, userId)
+		if isPathMatched {
+			message := fmt.Sprintf("blocked path %s (matched with %s) for user %s", req.URL.Path, path.Base, userId)
 			os.Stdout.WriteString(message)
 			http.Error(rw, message, http.StatusForbidden)
 			return
