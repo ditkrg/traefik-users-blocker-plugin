@@ -1,0 +1,16 @@
+displayName: UsersBlocker
+
+type: middleware
+
+import: github.com/ditkrg/traefik-users-blocker-plugin
+
+summary: A middleware that checks if users is allowed to access a path.
+
+testData:
+  userIds:
+    - userId1
+    - userId2
+  paths:
+    - prefix: /v1/users
+      value: testValue
+    - prefix: /v1/organizations
