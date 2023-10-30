@@ -54,11 +54,11 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 func (a *UsersBlocker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	userId := req.Header["X-Auth-User-Id"][0]
 
-	os.Stdout.WriteString("request Path ->")
-	os.Stdout.WriteString(req.URL.Path)
+	os.Stdout.WriteString("\n request Path ->")
+	os.Stdout.WriteString(req.URL.Path + "\n")
 
-	os.Stdout.WriteString("userId ->")
-	os.Stdout.WriteString(userId)
+	os.Stdout.WriteString("\n userId ->")
+	os.Stdout.WriteString(userId + "\n")
 
 	var isUserBlocked bool
 
