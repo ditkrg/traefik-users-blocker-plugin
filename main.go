@@ -1,5 +1,4 @@
-// Package example a example plugin.
-package UsersBlocker
+package traefik_users_blocker_plugin
 
 import (
 	"context"
