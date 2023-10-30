@@ -8,8 +8,13 @@ import (
 	"strings"
 )
 
+type Rule struct {
+	AllowedSubPaths []string `json:"allowedSubPaths,omitempty"`
+}
+
 type Path struct {
-	Base string `json:"base,omitempty"`
+	Path string `json:"base,omitempty"`
+	Rule Rule   `json:"rule,omitempty"`
 }
 
 type Config struct {
@@ -37,8 +42,8 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	}
 
 	for _, path := range config.Paths {
-		if path.Base == "" {
-			return nil, fmt.Errorf("Paths.Base cannot be empty")
+		if path.Path == "" {
+			return nil, fmt.Errorf("Paths.Path cannot be empty")
 		}
 	}
 
@@ -70,13 +75,28 @@ func (a *UsersBlocker) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	for _, path := range a.paths {
-		isPathMatched := strings.HasPrefix(req.URL.Path, path.Base)
+		isPathMatched := strings.HasPrefix(req.URL.Path, path.Path)
 
-		if isPathMatched {
-			message := fmt.Sprintf("blocked path %s (matched with %s) for user %s", req.URL.Path, path.Base, userId)
+		if !isPathMatched {
+			a.next.ServeHTTP(rw, req)
+			return
+		}
+
+		if len(path.Rule.AllowedSubPaths) == 0 {
+			message := fmt.Sprintf("blocked path %s (matched with %s) for user %s", req.URL.Path, path.Path, userId)
 			os.Stdout.WriteString(message)
 			http.Error(rw, message, http.StatusForbidden)
 			return
+		}
+
+		for _, allowedSubPath := range path.Rule.AllowedSubPaths {
+			isAllowedSubPathMatched := strings.HasPrefix(req.URL.Path, path.Path+allowedSubPath)
+			if !isAllowedSubPathMatched {
+				message := fmt.Sprintf("blocked path %s (matched with %s) for user %s", req.URL.Path, path.Path+path.Path+allowedSubPath, userId)
+				os.Stdout.WriteString(message)
+				http.Error(rw, message, http.StatusForbidden)
+				return
+			}
 		}
 	}
 
