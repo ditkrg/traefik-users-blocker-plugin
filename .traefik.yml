@@ -13,4 +13,3 @@ testData:
   paths:
     - base: /v1/users
       path: /testValue
-    - base: /v1/organizations
